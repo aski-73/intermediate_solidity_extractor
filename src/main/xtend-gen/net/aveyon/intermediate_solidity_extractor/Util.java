@@ -1,12 +1,17 @@
 package net.aveyon.intermediate_solidity_extractor;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import net.aveyon.intermediate_solidity.Field;
 import net.aveyon.intermediate_solidity.Function;
 import net.aveyon.intermediate_solidity.LocalField;
 import net.aveyon.intermediate_solidity.Modifier;
+import net.aveyon.intermediate_solidity.Node;
+import net.aveyon.intermediate_solidity.SmartContract;
 import net.aveyon.intermediate_solidity.Visibility;
 import org.eclipse.xtend2.lib.StringConcatenation;
+import org.eclipse.xtext.xbase.lib.Conversions;
 
 @SuppressWarnings("all")
 public class Util {
@@ -90,7 +95,6 @@ public class Util {
         _builder.append("public");
       }
     }
-    _builder.newLineIfNotEmpty();
     return _builder.toString();
   }
   
@@ -108,6 +112,28 @@ public class Util {
           _builder.appendImmediate(", ", "");
         }
         _builder.append(r);
+      }
+    }
+    return _builder.toString();
+  }
+  
+  public static String printExtension(final SmartContract contract) {
+    if (((((Object[])Conversions.unwrapArray(contract.getExtends(), Object.class)).length == 0) && (((Object[])Conversions.unwrapArray(contract.getImplements(), Object.class)).length == 0))) {
+      return "";
+    }
+    final List<Node> extensions = Stream.<Node>concat(contract.getExtends().stream(), contract.getImplements().stream()).collect(Collectors.<Node>toList());
+    StringConcatenation _builder = new StringConcatenation();
+    _builder.append("is ");
+    {
+      boolean _hasElements = false;
+      for(final Node e : extensions) {
+        if (!_hasElements) {
+          _hasElements = true;
+        } else {
+          _builder.appendImmediate(", ", "");
+        }
+        String _name = e.getName();
+        _builder.append(_name);
       }
     }
     return _builder.toString();

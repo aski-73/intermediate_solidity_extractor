@@ -39,14 +39,16 @@ public class IntermediateSolidityExtractor {
     _builder.append(_pragma);
     _builder.append(";");
     _builder.newLineIfNotEmpty();
+    _builder.newLine();
     {
       List<ImportedConcept> _imports = model.getImports();
       for(final ImportedConcept i : _imports) {
         String _generateImports = this.generateImports(i);
         _builder.append(_generateImports);
-        _builder.newLineIfNotEmpty();
       }
     }
+    _builder.newLineIfNotEmpty();
+    _builder.newLine();
     String _generateSolidityConcepts = this.generateSolidityConcepts(model.getDefinitions());
     _builder.append(_generateSolidityConcepts);
     _builder.newLineIfNotEmpty();
@@ -69,7 +71,12 @@ public class IntermediateSolidityExtractor {
     }
     {
       List<SmartContract> _contracts = definitions.getContracts();
+      boolean _hasElements = false;
       for(final SmartContract c : _contracts) {
+        if (!_hasElements) {
+          _hasElements = true;
+          _builder.append("\n");
+        }
         String _generateContract = this.generateContract(c);
         _builder.append(_generateContract);
         _builder.newLineIfNotEmpty();
@@ -90,7 +97,12 @@ public class IntermediateSolidityExtractor {
     }
     {
       List<net.aveyon.intermediate_solidity.Error> _errors = definitions.getErrors();
+      boolean _hasElements = false;
       for(final net.aveyon.intermediate_solidity.Error error : _errors) {
+        if (!_hasElements) {
+          _hasElements = true;
+          _builder.append("\n");
+        }
         String _generateError = this.generateError(error);
         _builder.append(_generateError);
         _builder.newLineIfNotEmpty();
@@ -98,7 +110,12 @@ public class IntermediateSolidityExtractor {
     }
     {
       List<Event> _events = definitions.getEvents();
+      boolean _hasElements_1 = false;
       for(final Event event : _events) {
+        if (!_hasElements_1) {
+          _hasElements_1 = true;
+          _builder.append("\n");
+        }
         String _generateEvent = this.generateEvent(event);
         _builder.append(_generateEvent);
         _builder.newLineIfNotEmpty();
@@ -106,7 +123,12 @@ public class IntermediateSolidityExtractor {
     }
     {
       List<Structure> _structures = definitions.getStructures();
+      boolean _hasElements_2 = false;
       for(final Structure struct : _structures) {
+        if (!_hasElements_2) {
+          _hasElements_2 = true;
+          _builder.append("\n");
+        }
         String _generateStructure = this.generateStructure(struct);
         _builder.append(_generateStructure);
         _builder.newLineIfNotEmpty();
@@ -114,7 +136,12 @@ public class IntermediateSolidityExtractor {
     }
     {
       List<Function> _functions = definitions.getFunctions();
+      boolean _hasElements_3 = false;
       for(final Function fun : _functions) {
+        if (!_hasElements_3) {
+          _hasElements_3 = true;
+          _builder.append("\n");
+        }
         String _generateFunction = this.generateFunction(fun);
         _builder.append(_generateFunction);
         _builder.newLineIfNotEmpty();
@@ -142,9 +169,10 @@ public class IntermediateSolidityExtractor {
   
   public String generateImports(final ImportedConcept importedConcept) {
     StringConcatenation _builder = new StringConcatenation();
-    _builder.append("import ");
+    _builder.append("import \"");
     String _path = importedConcept.getPath();
     _builder.append(_path);
+    _builder.append("\";");
     _builder.newLineIfNotEmpty();
     return _builder.toString();
   }
@@ -186,22 +214,19 @@ public class IntermediateSolidityExtractor {
     String _name = contract.getName();
     _builder.append(_name);
     _builder.append(" ");
-    {
-      int _size = contract.getExtends().size();
-      boolean _greaterThan = (_size > 0);
-      if (_greaterThan) {
-        _builder.append("is ");
-        {
-          List<SmartContract> _extends = contract.getExtends();
-          for(final SmartContract ext : _extends) {
-            String _name_1 = ext.getName();
-            _builder.append(_name_1);
-          }
-        }
-      }
-    }
+    String _printExtension = Util.printExtension(contract);
+    _builder.append(_printExtension);
     _builder.append(" {");
     _builder.newLineIfNotEmpty();
+    {
+      List<Field> _fields = contract.getFields();
+      for(final Field f : _fields) {
+        _builder.append("\t");
+        String _generateField = this.generateField(f);
+        _builder.append(_generateField, "\t");
+        _builder.newLineIfNotEmpty();
+      }
+    }
     _builder.append("\t");
     String _generateContractConcepts = this.generateContractConcepts(contract.getDefinitions());
     _builder.append(_generateContractConcepts, "\t");
@@ -407,8 +432,8 @@ public class IntermediateSolidityExtractor {
           _builder.appendImmediate(",", "\t");
         }
         _builder.append("\t");
-        _builder.append("v");
-        _builder.newLine();
+        _builder.append(v, "\t");
+        _builder.newLineIfNotEmpty();
       }
     }
     _builder.append("}");

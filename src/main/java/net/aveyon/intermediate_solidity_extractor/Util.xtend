@@ -6,6 +6,11 @@ import net.aveyon.intermediate_solidity.Function
 import net.aveyon.intermediate_solidity.Field
 import net.aveyon.intermediate_solidity.LocalField
 import net.aveyon.intermediate_solidity.Modifier
+import net.aveyon.intermediate_solidity.SmartContract
+import net.aveyon.intermediate_solidity.Node
+import java.util.stream.Stream
+import java.util.Collections
+import java.util.stream.Collectors
 
 class Util {
 
@@ -32,9 +37,7 @@ class Util {
 	}
 
 	def static printVisibility(Visibility visibility) {
-		return '''
-			«IF visibility !== null»«visibility.name.toLowerCase()»«ELSE»public«ENDIF»
-		'''
+		return '''«IF visibility !== null»«visibility.name.toLowerCase()»«ELSE»public«ENDIF»'''
 	}
 
 	def static printReturnValues(List<String> returnValues) {
@@ -43,5 +46,14 @@ class Util {
 		}
 
 		return '''«FOR r : returnValues SEPARATOR ", "»«r»«ENDFOR»'''
+	}
+	
+	def static printExtension(SmartContract contract) {
+		if (contract.extends.length == 0 && contract.implements.length == 0)
+			return ""
+			
+		val List<Node> extensions = Stream.concat(contract.extends.stream(), contract.implements.stream()).collect(Collectors.toList())
+		
+		return '''is «FOR e: extensions SEPARATOR ", "»«e.name»«ENDFOR»'''
 	}
 }

@@ -28,9 +28,9 @@ class IntermediateSolidityExtractor {
 		return '''
 			// SPDX-License-Identifier: «model.license»
 			pragma solidity «model.pragma»;
-			«FOR i: model.imports»
-				«generateImports(i)»
-			«ENDFOR»
+
+			«FOR i: model.imports»«generateImports(i)»«ENDFOR»
+
 			«generateSolidityConcepts(model.definitions)»
 		'''
 	}
@@ -42,7 +42,7 @@ class IntermediateSolidityExtractor {
 			«FOR iface : definitions.interfaces»
 				«generateInterface(iface)»
 			«ENDFOR»
-			«FOR c : definitions.contracts»
+			«FOR c : definitions.contracts BEFORE "\n"»
 				«generateContract(c)»
 			«ENDFOR»
 		'''
@@ -53,16 +53,16 @@ class IntermediateSolidityExtractor {
 			«FOR e : definitions.enums»
 				«generateEnumeration(e)»
 			«ENDFOR»
-			«FOR error : definitions.errors»
+			«FOR error : definitions.errors BEFORE "\n"»
 				«generateError(error)»
 			«ENDFOR»
-			«FOR event : definitions.events»
+			«FOR event : definitions.events BEFORE "\n"»
 				«generateEvent(event)»
 			«ENDFOR»
-			«FOR struct : definitions.structures»
+			«FOR struct : definitions.structures BEFORE "\n"»
 				«generateStructure(struct)»
 			«ENDFOR»
-			«FOR fun : definitions.functions»
+			«FOR fun : definitions.functions BEFORE "\n"»
 				«generateFunction(fun)»
 			«ENDFOR»
 		'''
@@ -80,7 +80,7 @@ class IntermediateSolidityExtractor {
 
 	def String generateImports(ImportedConcept importedConcept) {
 		return '''
-			import «importedConcept.path»
+			import "«importedConcept.path»";
 		'''
 	}
 
@@ -94,7 +94,10 @@ class IntermediateSolidityExtractor {
 
 	def String generateContract(SmartContract contract) {
 		return '''
-			contract «contract.name» «IF contract.extends.size > 0»is «FOR ext: contract.extends»«ext.name»«ENDFOR»«ENDIF» {
+			contract «contract.name» «Util.printExtension(contract)» {
+				«FOR f: contract.fields»
+					«generateField(f)»
+				«ENDFOR»
 				«generateContractConcepts(contract.definitions)»
 			}
 		'''
@@ -153,7 +156,7 @@ class IntermediateSolidityExtractor {
 		return '''
 			enum «enumeration.name» {
 				«FOR v: enumeration.values SEPARATOR ","»
-					v
+					«v»
 				«ENDFOR»
 			}
 		'''
