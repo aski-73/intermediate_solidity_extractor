@@ -1,11 +1,15 @@
 package net.aveyon.intermediate_solidity_extractor;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import net.aveyon.intermediate_solidity.ContractConcepts;
 import net.aveyon.intermediate_solidity.DataLocation;
 import net.aveyon.intermediate_solidity.Enumeration;
 import net.aveyon.intermediate_solidity.Event;
+import net.aveyon.intermediate_solidity.Expression;
+import net.aveyon.intermediate_solidity.ExpressionIf;
+import net.aveyon.intermediate_solidity.ExpressionString;
 import net.aveyon.intermediate_solidity.Field;
 import net.aveyon.intermediate_solidity.Function;
 import net.aveyon.intermediate_solidity.FunctionParameter;
@@ -18,6 +22,7 @@ import net.aveyon.intermediate_solidity.SmartContract;
 import net.aveyon.intermediate_solidity.SmartContractModel;
 import net.aveyon.intermediate_solidity.SolidityConcepts;
 import net.aveyon.intermediate_solidity.Structure;
+import net.aveyon.intermediate_solidity.util.Pair;
 import org.eclipse.xtend2.lib.StringConcatenation;
 import org.eclipse.xtext.xbase.lib.Conversions;
 
@@ -376,15 +381,10 @@ public class IntermediateSolidityExtractor {
         _builder_1.newLineIfNotEmpty();
         _builder_1.append("\t");
         {
-          List<String> _expressions = function.getExpressions();
-          boolean _hasElements_1 = false;
-          for(final String exp : _expressions) {
-            if (!_hasElements_1) {
-              _hasElements_1 = true;
-            } else {
-              _builder_1.appendImmediate(";", "\t");
-            }
-            _builder_1.append(exp, "\t");
+          List<Expression> _expressions = function.getExpressions();
+          for(final Expression exp : _expressions) {
+            String _generateExpression = this.generateExpression(exp);
+            _builder_1.append(_generateExpression, "\t");
           }
         }
         _builder_1.newLineIfNotEmpty();
@@ -393,6 +393,53 @@ public class IntermediateSolidityExtractor {
       }
     }
     return (_trim + _builder_1);
+  }
+  
+  protected String _generateExpression(final ExpressionIf exp) {
+    StringConcatenation _builder = new StringConcatenation();
+    {
+      List<Pair<String, List<Expression>>> _conditions = exp.getConditions();
+      for(final Pair<String, List<Expression>> c : _conditions) {
+        String _string = c.getFirst().toString();
+        _builder.append(_string);
+        _builder.append(" {");
+        _builder.newLineIfNotEmpty();
+        {
+          List<Expression> _second = c.getSecond();
+          for(final Expression e : _second) {
+            _builder.append("\t");
+            String _string_1 = e.toString();
+            _builder.append(_string_1, "\t");
+            {
+              boolean _startsWith = e.toString().startsWith("//");
+              boolean _not = (!_startsWith);
+              if (_not) {
+                _builder.append(";");
+              }
+            }
+            _builder.newLineIfNotEmpty();
+          }
+        }
+        _builder.append("}");
+        _builder.newLine();
+      }
+    }
+    return _builder.toString();
+  }
+  
+  protected String _generateExpression(final ExpressionString exp) {
+    StringConcatenation _builder = new StringConcatenation();
+    String _value = exp.getValue();
+    _builder.append(_value);
+    {
+      boolean _startsWith = exp.getValue().startsWith("//");
+      boolean _not = (!_startsWith);
+      if (_not) {
+        _builder.append(";");
+      }
+    }
+    _builder.newLineIfNotEmpty();
+    return _builder.toString();
   }
   
   public String generateFunctionParameter(final FunctionParameter param) {
@@ -473,5 +520,16 @@ public class IntermediateSolidityExtractor {
     _builder.append(_name);
     _builder.newLineIfNotEmpty();
     return _builder.toString();
+  }
+  
+  public String generateExpression(final Expression exp) {
+    if (exp instanceof ExpressionIf) {
+      return _generateExpression((ExpressionIf)exp);
+    } else if (exp instanceof ExpressionString) {
+      return _generateExpression((ExpressionString)exp);
+    } else {
+      throw new IllegalArgumentException("Unhandled parameter types: " +
+        Arrays.<Object>asList(exp).toString());
+    }
   }
 }

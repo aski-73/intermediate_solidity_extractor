@@ -16,6 +16,9 @@ import net.aveyon.intermediate_solidity.SmartContract
 import net.aveyon.intermediate_solidity.SmartContractModel
 import net.aveyon.intermediate_solidity.SolidityConcepts
 import net.aveyon.intermediate_solidity.Structure
+import net.aveyon.intermediate_solidity.impl.ExpressionIfImpl
+import net.aveyon.intermediate_solidity.ExpressionString
+import net.aveyon.intermediate_solidity.ExpressionIf
 
 /**
  * Class for generating concrete Solidity code by a given {@link SmartContractModel}
@@ -140,9 +143,26 @@ class IntermediateSolidityExtractor {
 			)«ENDIF» «Util.printFunctionKeyWords(function)» «Util.printReturnValues(function.returns)»'''.toString().trim()
 		+ 
 		'''«IF function.expressions.length == 0 || function.isAbstract»;«ELSE» {
-	«FOR exp : function.expressions SEPARATOR ";"»«exp»«ENDFOR»
+	«FOR exp : function.expressions»«generateExpression(exp)»«ENDFOR»
 }
 			«ENDIF»
+		'''
+	}
+	
+	def dispatch String generateExpression(ExpressionIf exp) {
+		return '''
+			«FOR c: exp.conditions»
+				«c.first.toString» {
+					«FOR e: c.second»
+						«e.toString()»«IF !e.toString().startsWith("//")»;«ENDIF»
+					«ENDFOR»
+				}
+			«ENDFOR»
+		'''
+	}
+
+	def dispatch String generateExpression(ExpressionString exp) {
+		return '''«exp.value»«IF !exp.value.startsWith("//")»;«ENDIF»
 		'''
 	}
 
