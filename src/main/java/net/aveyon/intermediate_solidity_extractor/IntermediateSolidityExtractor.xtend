@@ -154,7 +154,7 @@ class IntermediateSolidityExtractor {
 			«FOR c: exp.conditions»
 				«c.first.toString» {
 					«FOR e: c.second»
-						«e.toString()»«IF !e.toString().startsWith("//")»;«ENDIF»
+						«generateExpression(e)»
 					«ENDFOR»
 				}
 			«ENDFOR»
@@ -162,7 +162,7 @@ class IntermediateSolidityExtractor {
 	}
 
 	def dispatch String generateExpression(ExpressionString exp) {
-		return '''«exp.value»«IF !exp.value.startsWith("//")»;«ENDIF»
+		return '''«exp.value.toString»«IF !exp.value.startsWith("//")»;«ENDIF»
 		'''
 	}
 

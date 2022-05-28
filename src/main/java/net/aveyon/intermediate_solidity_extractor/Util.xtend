@@ -45,7 +45,7 @@ class Util {
 			return ""
 		}
 
-		return '''«FOR r : returnValues SEPARATOR ", "»«r»«ENDFOR»'''
+		return '''returns («FOR r : returnValues SEPARATOR ", "»«r»«ENDFOR»)'''
 	}
 	
 	def static printExtension(SmartContract contract) {

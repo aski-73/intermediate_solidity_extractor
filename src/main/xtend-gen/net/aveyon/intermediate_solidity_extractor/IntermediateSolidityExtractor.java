@@ -408,15 +408,8 @@ public class IntermediateSolidityExtractor {
           List<Expression> _second = c.getSecond();
           for(final Expression e : _second) {
             _builder.append("\t");
-            String _string_1 = e.toString();
-            _builder.append(_string_1, "\t");
-            {
-              boolean _startsWith = e.toString().startsWith("//");
-              boolean _not = (!_startsWith);
-              if (_not) {
-                _builder.append(";");
-              }
-            }
+            String _generateExpression = this.generateExpression(e);
+            _builder.append(_generateExpression, "\t");
             _builder.newLineIfNotEmpty();
           }
         }
@@ -429,8 +422,8 @@ public class IntermediateSolidityExtractor {
   
   protected String _generateExpression(final ExpressionString exp) {
     StringConcatenation _builder = new StringConcatenation();
-    String _value = exp.getValue();
-    _builder.append(_value);
+    String _string = exp.getValue().toString();
+    _builder.append(_string);
     {
       boolean _startsWith = exp.getValue().startsWith("//");
       boolean _not = (!_startsWith);

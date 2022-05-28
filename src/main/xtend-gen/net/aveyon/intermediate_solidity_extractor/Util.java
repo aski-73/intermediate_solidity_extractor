@@ -103,6 +103,7 @@ public class Util {
       return "";
     }
     StringConcatenation _builder = new StringConcatenation();
+    _builder.append("returns (");
     {
       boolean _hasElements = false;
       for(final String r : returnValues) {
@@ -114,6 +115,7 @@ public class Util {
         _builder.append(r);
       }
     }
+    _builder.append(")");
     return _builder.toString();
   }
   
