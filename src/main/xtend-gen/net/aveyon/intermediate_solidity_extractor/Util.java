@@ -3,6 +3,7 @@ package net.aveyon.intermediate_solidity_extractor;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import net.aveyon.intermediate_solidity.Constructor;
 import net.aveyon.intermediate_solidity.Field;
 import net.aveyon.intermediate_solidity.Function;
 import net.aveyon.intermediate_solidity.LocalField;
@@ -61,6 +62,20 @@ public class Util {
       }
     }
     return (_builder.toString() + _builder_1);
+  }
+  
+  public static String printConstructorKeyWords(final Constructor ctor) {
+    StringConcatenation _builder = new StringConcatenation();
+    {
+      boolean _payable = ctor.getPayable();
+      if (_payable) {
+        _builder.append(" payable");
+      }
+    }
+    _builder.append(" ");
+    String _printVisibility = Util.printVisibility(ctor.getVisibility());
+    _builder.append(_printVisibility);
+    return _builder.toString();
   }
   
   public static String printFieldKeyWords(final Field field) {

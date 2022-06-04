@@ -11,6 +11,7 @@ import net.aveyon.intermediate_solidity.Node
 import java.util.stream.Stream
 import java.util.Collections
 import java.util.stream.Collectors
+import net.aveyon.intermediate_solidity.Constructor
 
 class Util {
 
@@ -26,6 +27,10 @@ class Util {
 		return '''
 		«IF modifier.doesOverride» override«ENDIF»''' + '''
 		«IF modifier.virtual» virtual«ENDIF»'''
+	}
+	
+	def static printConstructorKeyWords(Constructor ctor) {
+		return '''«IF ctor.payable» payable«ENDIF» «printVisibility(ctor.visibility)»'''
 	}
 
 	def static printFieldKeyWords(Field field) {

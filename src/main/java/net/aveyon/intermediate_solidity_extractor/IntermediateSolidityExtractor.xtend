@@ -19,6 +19,7 @@ import net.aveyon.intermediate_solidity.Structure
 import net.aveyon.intermediate_solidity.impl.ExpressionIfImpl
 import net.aveyon.intermediate_solidity.ExpressionString
 import net.aveyon.intermediate_solidity.ExpressionIf
+import net.aveyon.intermediate_solidity.Constructor
 
 /**
  * Class for generating concrete Solidity code by a given {@link SmartContractModel}
@@ -73,6 +74,8 @@ class IntermediateSolidityExtractor {
 	
 	def String generateContractConcepts(ContractConcepts definitions) {
 		return '''
+			«generateConstructor(definitions.constructor)»
+			
 			«generateGeneralSolidityConcepts(definitions)»
 			
 			«FOR mod : definitions.modifiers»
@@ -178,6 +181,16 @@ class IntermediateSolidityExtractor {
 				«FOR v: enumeration.values SEPARATOR ","»
 					«v»
 				«ENDFOR»
+			}
+		'''
+	}
+	
+	def String generateConstructor(Constructor ctor) {
+		if (ctor.expressions.size == 0) return ""
+		
+		return '''
+			constructor() «Util.printConstructorKeyWords(ctor)» {
+				«FOR exp : ctor.expressions»«generateExpression(exp)»«ENDFOR»
 			}
 		'''
 	}

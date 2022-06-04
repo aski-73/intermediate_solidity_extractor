@@ -3,6 +3,7 @@ package net.aveyon.intermediate_solidity_extractor;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import net.aveyon.intermediate_solidity.Constructor;
 import net.aveyon.intermediate_solidity.ContractConcepts;
 import net.aveyon.intermediate_solidity.DataLocation;
 import net.aveyon.intermediate_solidity.Enumeration;
@@ -157,6 +158,10 @@ public class IntermediateSolidityExtractor {
   
   public String generateContractConcepts(final ContractConcepts definitions) {
     StringConcatenation _builder = new StringConcatenation();
+    String _generateConstructor = this.generateConstructor(definitions.getConstructor());
+    _builder.append(_generateConstructor);
+    _builder.newLineIfNotEmpty();
+    _builder.newLine();
     String _generateGeneralSolidityConcepts = this.generateGeneralSolidityConcepts(definitions);
     _builder.append(_generateGeneralSolidityConcepts);
     _builder.newLineIfNotEmpty();
@@ -476,6 +481,32 @@ public class IntermediateSolidityExtractor {
         _builder.newLineIfNotEmpty();
       }
     }
+    _builder.append("}");
+    _builder.newLine();
+    return _builder.toString();
+  }
+  
+  public String generateConstructor(final Constructor ctor) {
+    int _size = ctor.getExpressions().size();
+    boolean _equals = (_size == 0);
+    if (_equals) {
+      return "";
+    }
+    StringConcatenation _builder = new StringConcatenation();
+    _builder.append("constructor() ");
+    String _printConstructorKeyWords = Util.printConstructorKeyWords(ctor);
+    _builder.append(_printConstructorKeyWords);
+    _builder.append(" {");
+    _builder.newLineIfNotEmpty();
+    _builder.append("\t");
+    {
+      List<Expression> _expressions = ctor.getExpressions();
+      for(final Expression exp : _expressions) {
+        String _generateExpression = this.generateExpression(exp);
+        _builder.append(_generateExpression, "\t");
+      }
+    }
+    _builder.newLineIfNotEmpty();
     _builder.append("}");
     _builder.newLine();
     return _builder.toString();
