@@ -1,11 +1,11 @@
 package net.aveyon.intermediate_solidity_extractor;
 
+import com.google.common.base.Objects;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import net.aveyon.intermediate_solidity.Constructor;
 import net.aveyon.intermediate_solidity.ContractConcepts;
-import net.aveyon.intermediate_solidity.DataLocation;
 import net.aveyon.intermediate_solidity.Enumeration;
 import net.aveyon.intermediate_solidity.Event;
 import net.aveyon.intermediate_solidity.Expression;
@@ -158,23 +158,28 @@ public class IntermediateSolidityExtractor {
   
   public String generateContractConcepts(final ContractConcepts definitions) {
     StringConcatenation _builder = new StringConcatenation();
-    String _generateConstructor = this.generateConstructor(definitions.getConstructor());
-    _builder.append(_generateConstructor);
-    _builder.newLineIfNotEmpty();
-    _builder.newLine();
+    {
+      Constructor _constructor = definitions.getConstructor();
+      boolean _notEquals = (!Objects.equal(_constructor, null));
+      if (_notEquals) {
+        String _generateConstructor = this.generateConstructor(definitions.getConstructor());
+        _builder.append(_generateConstructor);
+      }
+    }
+    StringConcatenation _builder_1 = new StringConcatenation();
     String _generateGeneralSolidityConcepts = this.generateGeneralSolidityConcepts(definitions);
-    _builder.append(_generateGeneralSolidityConcepts);
-    _builder.newLineIfNotEmpty();
-    _builder.newLine();
+    _builder_1.append(_generateGeneralSolidityConcepts);
+    String _plus = (_builder.toString() + _builder_1);
+    StringConcatenation _builder_2 = new StringConcatenation();
     {
       List<Modifier> _modifiers = definitions.getModifiers();
       for(final Modifier mod : _modifiers) {
         String _generateModifier = this.generateModifier(mod);
-        _builder.append(_generateModifier);
-        _builder.newLineIfNotEmpty();
+        _builder_2.append(_generateModifier);
+        _builder_2.newLineIfNotEmpty();
       }
     }
-    return _builder.toString();
+    return (_plus + _builder_2);
   }
   
   public String generateImports(final ImportedConcept importedConcept) {
@@ -220,6 +225,12 @@ public class IntermediateSolidityExtractor {
   
   public String generateContract(final SmartContract contract) {
     StringConcatenation _builder = new StringConcatenation();
+    {
+      boolean _isAbstract = contract.isAbstract();
+      if (_isAbstract) {
+        _builder.append("abstract ");
+      }
+    }
     _builder.append("contract ");
     String _name = contract.getName();
     _builder.append(_name);
@@ -234,6 +245,7 @@ public class IntermediateSolidityExtractor {
         _builder.append("\t");
         String _generateField = this.generateField(f);
         _builder.append(_generateField, "\t");
+        _builder.append(";");
         _builder.newLineIfNotEmpty();
       }
     }
@@ -253,30 +265,32 @@ public class IntermediateSolidityExtractor {
     _builder.append(" ");
     String _name = field.getName();
     _builder.append(_name);
-    _builder.append(";");
-    _builder.newLineIfNotEmpty();
+    {
+      String _value = field.getValue();
+      boolean _notEquals = (!Objects.equal(_value, null));
+      if (_notEquals) {
+        _builder.append(" = ");
+        String _value_1 = field.getValue();
+        _builder.append(_value_1);
+      }
+    }
     return _builder.toString();
   }
   
   public String generateStructure(final Structure struct) {
     StringConcatenation _builder = new StringConcatenation();
-    _builder.append("structure ");
+    _builder.append("struct ");
     String _name = struct.getName();
     _builder.append(_name);
     _builder.append(" {");
     _builder.newLineIfNotEmpty();
     {
       List<LocalField> _fields = struct.getFields();
-      boolean _hasElements = false;
       for(final LocalField p : _fields) {
-        if (!_hasElements) {
-          _hasElements = true;
-        } else {
-          _builder.appendImmediate(",", "\t");
-        }
         _builder.append("\t");
         String _generateLocalField = this.generateLocalField(p);
         _builder.append(_generateLocalField, "\t");
+        _builder.append(";");
         _builder.newLineIfNotEmpty();
       }
     }
@@ -444,15 +458,9 @@ public class IntermediateSolidityExtractor {
     StringConcatenation _builder = new StringConcatenation();
     String _type = param.getType();
     _builder.append(_type);
-    {
-      DataLocation _dataLocation = param.getDataLocation();
-      boolean _tripleNotEquals = (_dataLocation != null);
-      if (_tripleNotEquals) {
-        _builder.append(" ");
-        String _lowerCase = param.getDataLocation().name().toLowerCase();
-        _builder.append(_lowerCase);
-      }
-    }
+    _builder.append(" ");
+    String _printFunctionParameterKeyWords = Util.printFunctionParameterKeyWords(param);
+    _builder.append(_printFunctionParameterKeyWords);
     _builder.append(" ");
     String _name = param.getName();
     _builder.append(_name);
@@ -524,9 +532,10 @@ public class IntermediateSolidityExtractor {
     _builder.newLineIfNotEmpty();
     _builder.append("\t");
     {
-      List<String> _expressions = modifier.getExpressions();
-      for(final String e : _expressions) {
-        _builder.append(e, "\t");
+      List<Expression> _expressions = modifier.getExpressions();
+      for(final Expression e : _expressions) {
+        String _generateExpression = this.generateExpression(e);
+        _builder.append(_generateExpression, "\t");
       }
     }
     _builder.newLineIfNotEmpty();
@@ -542,7 +551,6 @@ public class IntermediateSolidityExtractor {
     _builder.append(" ");
     String _name = localField.getName();
     _builder.append(_name);
-    _builder.newLineIfNotEmpty();
     return _builder.toString();
   }
   

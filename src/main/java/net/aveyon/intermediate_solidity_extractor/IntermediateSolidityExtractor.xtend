@@ -73,11 +73,10 @@ class IntermediateSolidityExtractor {
 	}
 	
 	def String generateContractConcepts(ContractConcepts definitions) {
-		return '''
-			«generateConstructor(definitions.constructor)»
-			
-			«generateGeneralSolidityConcepts(definitions)»
-			
+		return '''«IF definitions.constructor != null»«generateConstructor(definitions.constructor)»«ENDIF»'''
+		+
+		'''«generateGeneralSolidityConcepts(definitions)»'''
+		+'''
 			«FOR mod : definitions.modifiers»
 				«generateModifier(mod)»
 			«ENDFOR»
@@ -100,9 +99,9 @@ class IntermediateSolidityExtractor {
 
 	def String generateContract(SmartContract contract) {
 		return '''
-			contract «contract.name» «Util.printExtension(contract)» {
+			«IF contract.isAbstract»abstract «ENDIF»contract «contract.name» «Util.printExtension(contract)» {
 				«FOR f: contract.fields»
-					«generateField(f)»
+					«generateField(f)»;
 				«ENDFOR»
 				«generateContractConcepts(contract.definitions)»
 			}
@@ -110,16 +109,14 @@ class IntermediateSolidityExtractor {
 	}
 
 	def String generateField(Field field) {
-		return '''
-			«Util.printFieldKeyWords(field)» «field.name»;
-		'''
+		return '''«Util.printFieldKeyWords(field)» «field.name»«IF field.value != null» = «field.value»«ENDIF»'''
 	}
 
 	def String generateStructure(Structure struct) {
 		return '''
-			structure «struct.name» {
-				«FOR p: struct.fields SEPARATOR ","»
-					«generateLocalField(p)»
+			struct «struct.name» {
+				«FOR p: struct.fields»
+					«generateLocalField(p)»;
 				«ENDFOR»
 			}
 		'''
@@ -171,7 +168,7 @@ class IntermediateSolidityExtractor {
 
 	def String generateFunctionParameter(FunctionParameter param) {
 		return '''
-			«param.type»«IF param.dataLocation !== null» «param.dataLocation.name.toLowerCase»«ENDIF» «param.name»
+			«param.type» «Util.printFunctionParameterKeyWords(param)» «param.name»
 		'''
 	}
 
@@ -198,15 +195,15 @@ class IntermediateSolidityExtractor {
 	def String generateModifier(Modifier modifier) {
 		return '''
 			modifier «modifier.name» «Util.printModifierKeyWords(modifier)»{
-				«FOR e: modifier.expressions»«e»«ENDFOR»
+				«FOR e: modifier.expressions»«generateExpression(e)»«ENDFOR»
 			}
 		'''
 	}
 
 	def String generateLocalField(LocalField localField) {
-		return '''
-			«Util.printLocalFieldKeyWords(localField)» «localField.name»
-		'''
+		return '''«Util.printLocalFieldKeyWords(localField)» «localField.name»'''
 	}
+	
+
 
 }

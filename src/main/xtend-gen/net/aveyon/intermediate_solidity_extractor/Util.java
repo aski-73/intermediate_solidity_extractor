@@ -1,11 +1,13 @@
 package net.aveyon.intermediate_solidity_extractor;
 
+import com.google.common.base.Objects;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.aveyon.intermediate_solidity.Constructor;
 import net.aveyon.intermediate_solidity.Field;
 import net.aveyon.intermediate_solidity.Function;
+import net.aveyon.intermediate_solidity.FunctionParameter;
 import net.aveyon.intermediate_solidity.LocalField;
 import net.aveyon.intermediate_solidity.Modifier;
 import net.aveyon.intermediate_solidity.Node;
@@ -22,28 +24,55 @@ public class Util {
     _builder.append(_printVisibility);
     StringConcatenation _builder_1 = new StringConcatenation();
     {
-      boolean _doesOverride = function.getDoesOverride();
-      if (_doesOverride) {
-        _builder_1.append(" override");
+      boolean _isPure = function.isPure();
+      if (_isPure) {
+        _builder_1.append(" pure");
       }
     }
     String _plus = (_builder.toString() + _builder_1);
     StringConcatenation _builder_2 = new StringConcatenation();
     {
-      boolean _isVirtual = function.isVirtual();
-      if (_isVirtual) {
-        _builder_2.append(" virtual");
+      boolean _doesOverride = function.getDoesOverride();
+      if (_doesOverride) {
+        _builder_2.append(" override");
       }
     }
     String _plus_1 = (_plus + _builder_2);
     StringConcatenation _builder_3 = new StringConcatenation();
     {
-      boolean _payable = function.getPayable();
-      if (_payable) {
-        _builder_3.append(" payable");
+      boolean _isVirtual = function.isVirtual();
+      if (_isVirtual) {
+        _builder_3.append(" virtual");
       }
     }
-    return (_plus_1 + _builder_3);
+    String _plus_2 = (_plus_1 + _builder_3);
+    StringConcatenation _builder_4 = new StringConcatenation();
+    {
+      boolean _payable = function.getPayable();
+      if (_payable) {
+        _builder_4.append(" payable");
+      }
+    }
+    return (_plus_2 + _builder_4);
+  }
+  
+  public static String printFunctionParameterKeyWords(final FunctionParameter param) {
+    StringConcatenation _builder = new StringConcatenation();
+    {
+      boolean _payable = param.getPayable();
+      if (_payable) {
+        _builder.append(" payable");
+      }
+    }
+    StringConcatenation _builder_1 = new StringConcatenation();
+    {
+      if (((param.getDataLocation() != null) && (!Util.isPrimitive(param.getType())))) {
+        _builder_1.append(" ");
+        String _lowerCase = param.getDataLocation().name().toLowerCase();
+        _builder_1.append(_lowerCase);
+      }
+    }
+    return (_builder.toString() + _builder_1);
   }
   
   public static String printModifierKeyWords(final Modifier modifier) {
@@ -65,6 +94,7 @@ public class Util {
   }
   
   public static String printConstructorKeyWords(final Constructor ctor) {
+    final String v = Util.printVisibility(ctor.getVisibility());
     StringConcatenation _builder = new StringConcatenation();
     {
       boolean _payable = ctor.getPayable();
@@ -73,8 +103,13 @@ public class Util {
       }
     }
     _builder.append(" ");
-    String _printVisibility = Util.printVisibility(ctor.getVisibility());
-    _builder.append(_printVisibility);
+    {
+      String _lowerCase = Visibility.PUBLIC.name().toLowerCase();
+      boolean _notEquals = (!Objects.equal(v, _lowerCase));
+      if (_notEquals) {
+        _builder.append(v);
+      }
+    }
     return _builder.toString();
   }
   
@@ -128,6 +163,13 @@ public class Util {
           _builder.appendImmediate(", ", "");
         }
         _builder.append(r);
+        {
+          boolean _isPrimitive = Util.isPrimitive(r);
+          boolean _not = (!_isPrimitive);
+          if (_not) {
+            _builder.append(" memory");
+          }
+        }
       }
     }
     _builder.append(")");
@@ -154,5 +196,9 @@ public class Util {
       }
     }
     return _builder.toString();
+  }
+  
+  public static boolean isPrimitive(final String type) {
+    return (((((type.startsWith("uint") || type.startsWith("int")) || type.startsWith("float")) || Objects.equal(type, "bool")) || Objects.equal(type, "address")) || (type.contains("byte") && (!Objects.equal(type, "bytes"))));
   }
 }
