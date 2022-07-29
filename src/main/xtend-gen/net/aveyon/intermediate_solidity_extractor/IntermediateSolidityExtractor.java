@@ -9,8 +9,6 @@ import net.aveyon.intermediate_solidity.ContractConcepts;
 import net.aveyon.intermediate_solidity.Enumeration;
 import net.aveyon.intermediate_solidity.Event;
 import net.aveyon.intermediate_solidity.Expression;
-import net.aveyon.intermediate_solidity.ExpressionIf;
-import net.aveyon.intermediate_solidity.ExpressionString;
 import net.aveyon.intermediate_solidity.Field;
 import net.aveyon.intermediate_solidity.Function;
 import net.aveyon.intermediate_solidity.FunctionParameter;
@@ -22,7 +20,11 @@ import net.aveyon.intermediate_solidity.Modifier;
 import net.aveyon.intermediate_solidity.SmartContract;
 import net.aveyon.intermediate_solidity.SmartContractModel;
 import net.aveyon.intermediate_solidity.SolidityConcepts;
+import net.aveyon.intermediate_solidity.Statement;
+import net.aveyon.intermediate_solidity.StatementExpression;
+import net.aveyon.intermediate_solidity.StatementIf;
 import net.aveyon.intermediate_solidity.Structure;
+import net.aveyon.intermediate_solidity.Type;
 import net.aveyon.intermediate_solidity.util.Pair;
 import org.eclipse.xtend2.lib.StringConcatenation;
 import org.eclipse.xtext.xbase.lib.Conversions;
@@ -388,22 +390,44 @@ public class IntermediateSolidityExtractor {
     String _printFunctionKeyWords = Util.printFunctionKeyWords(function);
     _builder.append(_printFunctionKeyWords);
     _builder.append(" ");
-    String _printReturnValues = Util.printReturnValues(function.getReturns());
-    _builder.append(_printReturnValues);
+    {
+      int _length_1 = ((Object[])Conversions.unwrapArray(function.getReturns(), Object.class)).length;
+      boolean _greaterThan = (_length_1 > 0);
+      if (_greaterThan) {
+        _builder.append(" returns (");
+        _builder.newLineIfNotEmpty();
+        {
+          List<FunctionParameter> _returns = function.getReturns();
+          boolean _hasElements_1 = false;
+          for(final FunctionParameter p_1 : _returns) {
+            if (!_hasElements_1) {
+              _hasElements_1 = true;
+            } else {
+              _builder.appendImmediate(",", "\t");
+            }
+            _builder.append("\t");
+            String _generateFunctionParameter_1 = this.generateFunctionParameter(p_1);
+            _builder.append(_generateFunctionParameter_1, "\t");
+            _builder.newLineIfNotEmpty();
+          }
+        }
+        _builder.append(")");
+      }
+    }
     String _trim = _builder.toString().trim();
     StringConcatenation _builder_1 = new StringConcatenation();
     {
-      if (((((Object[])Conversions.unwrapArray(function.getExpressions(), Object.class)).length == 0) || function.isAbstract())) {
+      if (((((Object[])Conversions.unwrapArray(function.getStatements(), Object.class)).length == 0) || function.isAbstract())) {
         _builder_1.append(";");
       } else {
         _builder_1.append(" {");
         _builder_1.newLineIfNotEmpty();
         _builder_1.append("\t");
         {
-          List<Expression> _expressions = function.getExpressions();
-          for(final Expression exp : _expressions) {
-            String _generateExpression = this.generateExpression(exp);
-            _builder_1.append(_generateExpression, "\t");
+          List<Statement> _statements = function.getStatements();
+          for(final Statement s : _statements) {
+            String _generateStatement = this.generateStatement(s);
+            _builder_1.append(_generateStatement, "\t");
           }
         }
         _builder_1.newLineIfNotEmpty();
@@ -414,21 +438,21 @@ public class IntermediateSolidityExtractor {
     return (_trim + _builder_1);
   }
   
-  protected String _generateExpression(final ExpressionIf exp) {
+  protected String _generateStatement(final StatementIf statement) {
     StringConcatenation _builder = new StringConcatenation();
     {
-      List<Pair<String, List<Expression>>> _conditions = exp.getConditions();
-      for(final Pair<String, List<Expression>> c : _conditions) {
+      List<Pair<Expression, List<Statement>>> _conditions = statement.getConditions();
+      for(final Pair<Expression, List<Statement>> c : _conditions) {
         String _string = c.getFirst().toString();
         _builder.append(_string);
         _builder.append(" {");
         _builder.newLineIfNotEmpty();
         {
-          List<Expression> _second = c.getSecond();
-          for(final Expression e : _second) {
+          List<Statement> _second = c.getSecond();
+          for(final Statement s : _second) {
             _builder.append("\t");
-            String _generateExpression = this.generateExpression(e);
-            _builder.append(_generateExpression, "\t");
+            String _generateStatement = this.generateStatement(s);
+            _builder.append(_generateStatement, "\t");
             _builder.newLineIfNotEmpty();
           }
         }
@@ -439,12 +463,12 @@ public class IntermediateSolidityExtractor {
     return _builder.toString();
   }
   
-  protected String _generateExpression(final ExpressionString exp) {
+  protected String _generateStatement(final StatementExpression statement) {
     StringConcatenation _builder = new StringConcatenation();
-    String _string = exp.getValue().toString();
+    String _string = statement.getExpr().getValue().toString();
     _builder.append(_string);
     {
-      boolean _startsWith = exp.getValue().startsWith("//");
+      boolean _startsWith = statement.getExpr().getValue().startsWith("//");
       boolean _not = (!_startsWith);
       if (_not) {
         _builder.append(";");
@@ -456,8 +480,8 @@ public class IntermediateSolidityExtractor {
   
   public String generateFunctionParameter(final FunctionParameter param) {
     StringConcatenation _builder = new StringConcatenation();
-    String _type = param.getType();
-    _builder.append(_type);
+    String _generateType = this.generateType(param.getType());
+    _builder.append(_generateType);
     _builder.append(" ");
     String _printFunctionParameterKeyWords = Util.printFunctionParameterKeyWords(param);
     _builder.append(_printFunctionParameterKeyWords);
@@ -495,7 +519,7 @@ public class IntermediateSolidityExtractor {
   }
   
   public String generateConstructor(final Constructor ctor) {
-    int _size = ctor.getExpressions().size();
+    int _size = ctor.getStatements().size();
     boolean _equals = (_size == 0);
     if (_equals) {
       return "";
@@ -508,16 +532,20 @@ public class IntermediateSolidityExtractor {
     _builder.newLineIfNotEmpty();
     _builder.append("\t");
     {
-      List<Expression> _expressions = ctor.getExpressions();
-      for(final Expression exp : _expressions) {
-        String _generateExpression = this.generateExpression(exp);
-        _builder.append(_generateExpression, "\t");
+      List<Statement> _statements = ctor.getStatements();
+      for(final Statement s : _statements) {
+        String _generateStatement = this.generateStatement(s);
+        _builder.append(_generateStatement, "\t");
       }
     }
     _builder.newLineIfNotEmpty();
     _builder.append("}");
     _builder.newLine();
     return _builder.toString();
+  }
+  
+  public String generateType(final Type type) {
+    return type.getName();
   }
   
   public String generateModifier(final Modifier modifier) {
@@ -532,10 +560,10 @@ public class IntermediateSolidityExtractor {
     _builder.newLineIfNotEmpty();
     _builder.append("\t");
     {
-      List<Expression> _expressions = modifier.getExpressions();
-      for(final Expression e : _expressions) {
-        String _generateExpression = this.generateExpression(e);
-        _builder.append(_generateExpression, "\t");
+      List<Statement> _statements = modifier.getStatements();
+      for(final Statement s : _statements) {
+        String _generateStatement = this.generateStatement(s);
+        _builder.append(_generateStatement, "\t");
       }
     }
     _builder.newLineIfNotEmpty();
@@ -554,14 +582,14 @@ public class IntermediateSolidityExtractor {
     return _builder.toString();
   }
   
-  public String generateExpression(final Expression exp) {
-    if (exp instanceof ExpressionIf) {
-      return _generateExpression((ExpressionIf)exp);
-    } else if (exp instanceof ExpressionString) {
-      return _generateExpression((ExpressionString)exp);
+  public String generateStatement(final Statement statement) {
+    if (statement instanceof StatementExpression) {
+      return _generateStatement((StatementExpression)statement);
+    } else if (statement instanceof StatementIf) {
+      return _generateStatement((StatementIf)statement);
     } else {
       throw new IllegalArgumentException("Unhandled parameter types: " +
-        Arrays.<Object>asList(exp).toString());
+        Arrays.<Object>asList(statement).toString());
     }
   }
 }

@@ -1,25 +1,7 @@
 package net.aveyon.intermediate_solidity_extractor
 
-import net.aveyon.intermediate_solidity.ContractConcepts
-import net.aveyon.intermediate_solidity.Enumeration
-import net.aveyon.intermediate_solidity.Error
-import net.aveyon.intermediate_solidity.Event
-import net.aveyon.intermediate_solidity.Field
-import net.aveyon.intermediate_solidity.Function
-import net.aveyon.intermediate_solidity.FunctionParameter
-import net.aveyon.intermediate_solidity.GeneralSolidityConcepts
-import net.aveyon.intermediate_solidity.ImportedConcept
-import net.aveyon.intermediate_solidity.Interface
-import net.aveyon.intermediate_solidity.LocalField
-import net.aveyon.intermediate_solidity.Modifier
-import net.aveyon.intermediate_solidity.SmartContract
-import net.aveyon.intermediate_solidity.SmartContractModel
-import net.aveyon.intermediate_solidity.SolidityConcepts
-import net.aveyon.intermediate_solidity.Structure
-import net.aveyon.intermediate_solidity.impl.ExpressionIfImpl
-import net.aveyon.intermediate_solidity.ExpressionString
-import net.aveyon.intermediate_solidity.ExpressionIf
-import net.aveyon.intermediate_solidity.Constructor
+import net.aveyon.intermediate_solidity.*
+
 
 /**
  * Class for generating concrete Solidity code by a given {@link SmartContractModel}
@@ -140,35 +122,39 @@ class IntermediateSolidityExtractor {
 				«FOR p: function.parameters SEPARATOR ","»
 					«generateFunctionParameter(p)»
 				«ENDFOR»
-			)«ENDIF» «Util.printFunctionKeyWords(function)» «Util.printReturnValues(function.returns)»'''.toString().trim()
+			)«ENDIF» «Util.printFunctionKeyWords(function)» «IF function.returns.length > 0» returns (
+				«FOR p: function.returns SEPARATOR ","»
+					«generateFunctionParameter(p)»
+				«ENDFOR»
+			)«ENDIF»«»'''.toString().trim()
 		+ 
-		'''«IF function.expressions.length == 0 || function.isAbstract»;«ELSE» {
-	«FOR exp : function.expressions»«generateExpression(exp)»«ENDFOR»
+		'''«IF function.statements.length == 0 || function.isAbstract»;«ELSE» {
+	«FOR s : function.statements»«generateStatement(s)»«ENDFOR»
 }
 			«ENDIF»
 		'''
 	}
 	
-	def dispatch String generateExpression(ExpressionIf exp) {
+	def dispatch String generateStatement(StatementIf statement) {
 		return '''
-			«FOR c: exp.conditions»
+			«FOR c: statement.conditions»
 				«c.first.toString» {
-					«FOR e: c.second»
-						«generateExpression(e)»
+					«FOR s: c.second»
+						«generateStatement(s)»
 					«ENDFOR»
 				}
 			«ENDFOR»
 		'''
 	}
 
-	def dispatch String generateExpression(ExpressionString exp) {
-		return '''«exp.value.toString»«IF !exp.value.startsWith("//")»;«ENDIF»
+	def dispatch String generateStatement(StatementExpression statement) {
+		return '''«statement.expr.value.toString»«IF !statement.expr.value.startsWith("//")»;«ENDIF»
 		'''
 	}
 
 	def String generateFunctionParameter(FunctionParameter param) {
 		return '''
-			«param.type» «Util.printFunctionParameterKeyWords(param)» «param.name»
+			«param.type.generateType» «Util.printFunctionParameterKeyWords(param)» «param.name»
 		'''
 	}
 
@@ -183,19 +169,23 @@ class IntermediateSolidityExtractor {
 	}
 	
 	def String generateConstructor(Constructor ctor) {
-		if (ctor.expressions.size == 0) return ""
+		if (ctor.statements.size == 0) return ""
 		
 		return '''
 			constructor() «Util.printConstructorKeyWords(ctor)» {
-				«FOR exp : ctor.expressions»«generateExpression(exp)»«ENDFOR»
+				«FOR s : ctor.statements»«generateStatement(s)»«ENDFOR»
 			}
 		'''
+	}
+	
+	def String generateType(Type type) {
+		return type.name
 	}
 
 	def String generateModifier(Modifier modifier) {
 		return '''
 			modifier «modifier.name» «Util.printModifierKeyWords(modifier)»{
-				«FOR e: modifier.expressions»«generateExpression(e)»«ENDFOR»
+				«FOR s: modifier.statements»«generateStatement(s)»«ENDFOR»
 			}
 		'''
 	}
@@ -203,7 +193,4 @@ class IntermediateSolidityExtractor {
 	def String generateLocalField(LocalField localField) {
 		return '''«Util.printLocalFieldKeyWords(localField)» «localField.name»'''
 	}
-	
-
-
 }

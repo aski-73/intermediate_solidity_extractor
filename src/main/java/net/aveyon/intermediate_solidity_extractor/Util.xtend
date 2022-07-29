@@ -27,7 +27,7 @@ class Util {
 	def static printFunctionParameterKeyWords(FunctionParameter param) {
 		return
 		'''«IF param.payable» payable«ENDIF»''' + 
-		 '''«IF param.dataLocation !== null && !param.type.isPrimitive» «param.dataLocation.name.toLowerCase»«ENDIF»'''
+		 '''«IF param.dataLocation !== null && !param.type.name.isPrimitive» «param.dataLocation.name.toLowerCase»«ENDIF»'''
 	}
 
 	def static printModifierKeyWords(Modifier modifier) {
@@ -47,7 +47,7 @@ class Util {
 	}
 
 	def static printLocalFieldKeyWords(LocalField field) {
-		return '''«field.type»«IF field.payable» payable«ENDIF»'''
+		return '''«field.type.name»«IF field.payable» payable«ENDIF»'''
 	}
 
 	def static printVisibility(Visibility visibility) {

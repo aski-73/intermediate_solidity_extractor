@@ -66,7 +66,7 @@ public class Util {
     }
     StringConcatenation _builder_1 = new StringConcatenation();
     {
-      if (((param.getDataLocation() != null) && (!Util.isPrimitive(param.getType())))) {
+      if (((param.getDataLocation() != null) && (!Util.isPrimitive(param.getType().getName())))) {
         _builder_1.append(" ");
         String _lowerCase = param.getDataLocation().name().toLowerCase();
         _builder_1.append(_lowerCase);
@@ -125,7 +125,8 @@ public class Util {
   
   public static String printLocalFieldKeyWords(final LocalField field) {
     StringConcatenation _builder = new StringConcatenation();
-    _builder.append(field.type);
+    String _name = field.getType().getName();
+    _builder.append(_name);
     {
       boolean _payable = field.getPayable();
       if (_payable) {
